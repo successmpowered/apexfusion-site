@@ -94,12 +94,13 @@
     </div>
 
     <div class="live-stats">
-      <div class="live-stat"><div class="big">6.08M+</div><div class="lbl">Blocks produced</div></div>
-      <div class="live-stat"><div class="big">292</div><div class="lbl">Current epoch</div></div>
-      <div class="live-stat"><div class="big">10mo</div><div class="lbl">Live on mainnet</div></div>
+      <div class="live-stat"><div class="big" data-live="blocks">6.82M+</div><div class="lbl">Blocks produced</div></div>
+      <div class="live-stat"><div class="big" data-live="epoch">324</div><div class="lbl">Current epoch</div></div>
+      <div class="live-stat"><div class="big" data-live="months">11mo</div><div class="lbl">Live on mainnet</div></div>
       <div class="live-stat"><div class="big">127</div><div class="lbl">On-chain unit tests</div></div>
       <div class="live-stat"><div class="big">385K</div><div class="lbl">Records provenanced</div></div>
     </div>
+    <p class="live-caption" style="margin-top:12px"><span class="live-dot"></span> Blocks, epoch, and duration read live from Koios mainnet.</p>
 
     <div class="verify-onchain">
       <b>Verify on-chain →</b>
@@ -225,5 +226,28 @@
   </div>
 </div></footer>
 
+<script>
+// Live network stats from Koios mainnet
+(function(){
+  fetch('https://v2.koios.vector.mainnet.apexfusion.org/api/v1/tip')
+    .then(function(r){return r.json();})
+    .then(function(data){
+      var tip = Array.isArray(data) ? data[0] : data;
+      if(!tip || typeof tip.block_no !== 'number') return;
+      var blocks = tip.block_no;
+      var blocksFmt = blocks >= 1e6
+        ? (Math.floor(blocks/1e4)/100).toFixed(2).replace(/\.?0+$/,'') + 'M+'
+        : blocks.toLocaleString() + '+';
+      var launch = new Date('2025-08-01T00:00:00Z');
+      var now = new Date((tip.block_time||Date.now()/1000)*1000);
+      var months = (now.getUTCFullYear()-launch.getUTCFullYear())*12 + (now.getUTCMonth()-launch.getUTCMonth());
+      if(months < 1) months = 1;
+      document.querySelectorAll('[data-live="blocks"]').forEach(function(el){el.textContent = blocksFmt;});
+      document.querySelectorAll('[data-live="epoch"]').forEach(function(el){el.textContent = tip.epoch_no;});
+      document.querySelectorAll('[data-live="months"]').forEach(function(el){el.textContent = months + 'mo';});
+    })
+    .catch(function(){});
+})();
+</script>
 </body>
 </html>
